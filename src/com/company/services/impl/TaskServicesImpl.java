@@ -4,6 +4,7 @@ import com.company.db.DBHelper;
 import com.company.db.enums.Condition;
 import com.company.db.impl.DBHelperImpl;
 import com.company.models.Task;
+import com.company.models.User;
 import com.company.services.TaskServices;
 
 import java.sql.PreparedStatement;
@@ -21,7 +22,10 @@ public class TaskServicesImpl implements TaskServices {
     public List<Task> getTaskList() {
 
         try {
-            PreparedStatement ps=dbHelper.getConnection("select * from tb_task order by id asc");
+            PreparedStatement ps=dbHelper.getConnection("select t.id, t.name, t.state, u.id as user_id, u.login as user_login \n" +
+                    "from tb_task  t \n" +
+                    "INNER JOIN tb_user u \n" +
+                    "on u.id = t.user_id");
             ResultSet rs = ps.executeQuery();
             List<Task> list = new ArrayList<>();
             while (rs.next()){
@@ -29,6 +33,10 @@ public class TaskServicesImpl implements TaskServices {
                 task.setId(rs.getInt("id"));
                 task.setName(rs.getString("name"));
                 task.setState(rs.getString("state"));
+                User user = new User();
+                user.setId(rs.getInt("user_id"));
+                user.setLogin(rs.getString("user_login"));
+                task.setUserId(user);
                 list.add(task);
             }
             return list;
@@ -88,7 +96,7 @@ public class TaskServicesImpl implements TaskServices {
     public void outputList(List<Task> task) {
         for (int i = 0; i <task.size(); i++) {
             System.out.println("id = " + task.get(i).getId() + ", названия = " + task.get(i).getName() +
-                    ", статус = " + task.get(i).getState());
+                    ", статус = " + task.get(i).getState() + ", пользователь = " + task.get(i).getUserId().getLogin());
         }
         System.out.println();
     }
